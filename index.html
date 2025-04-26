@@ -3,105 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ORIGA - помощь в покупке товаров из Китая, работа с китайскими оптовыми компаниями, выгодные условия для бизнеса.">
-  <meta name="keywords" content="оптовая покупка, Китай, товары из Китая, ORIGA, бизнес, импорт, доставка из Китая">
-  <title>ORIGA - Ваш надёжный партнёр для закупок из Китая</title>
+  <title>Мой сайт из Google Таблицы</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f4;
-      color: #333;
-    }
-    header {
-      background-color: #2c3e50;
-      color: white;
+      font-family: Arial, sans-serif;
       text-align: center;
-      padding: 50px 0;
+      padding: 20px;
     }
-    header h1 {
-      font-size: 48px;
-      margin: 0;
+    table {
+      border-collapse: collapse;
+      width: 80%;
+      margin: 20px auto;
     }
-    header p {
-      font-size: 18px;
-      margin-top: 10px;
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
     }
-    .main-content {
-      padding: 40px;
-      background-color: #fff;
-      text-align: center;
-    }
-    .button {
-      background-color: #e74c3c;
-      color: white;
-      padding: 15px 30px;
-      text-decoration: none;
-      font-size: 18px;
-      border-radius: 5px;
-      transition: background-color 0.3s;
-    }
-    .button:hover {
-      background-color: #c0392b;
-    }
-    .section {
-      margin-top: 40px;
-    }
-    .section h2 {
-      font-size: 32px;
-      color: #2c3e50;
-    }
-    .section p {
-      font-size: 20px;
-      line-height: 1.6;
-      color: #7f8c8d;
-    }
-    footer {
-      background-color: #2c3e50;
-      color: white;
-      text-align: center;
-      padding: 20px 0;
-      position: relative;
-      bottom: 0;
-      width: 100%;
+    th {
+      background-color: #f2f2f2;
     }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>ORIGA</h1>
-  <p>Ваш надёжный партнёр для закупок из Китая</p>
-</header>
+<h1>Данные из Google Sheets</h1>
 
-<div class="main-content">
-  <h2>Добро пожаловать в ORIGA</h2>
-  <p>Мы помогаем вам наладить выгодные и эффективные бизнес-связи с китайскими оптовыми поставщиками. Воспользуйтесь нашим опытом, чтобы покупать товары по выгодным ценам с гарантией качества и быстрой доставки!</p>
-  <a href="#services" class="button">Узнать больше</a>
-</div>
+<table id="data-table">
+  <thead></thead>
+  <tbody></tbody>
+</table>
 
-<div class="section" id="services">
-  <h2>Наши услуги</h2>
-  <p>ORIGA предоставляет полный спектр услуг для бизнеса, связанного с закупками из Китая:</p>
-  <ul>
-    <li><strong>Поиск и выбор поставщиков</strong>: Мы поможем найти лучших производителей в Китае по вашему запросу.</li>
-    <li><strong>Выгодные закупки</strong>: Работая с нами, вы получите конкурентоспособные цены на товары.</li>
-    <li><strong>Таможенное оформление и доставка</strong>: Мы позаботимся о всех аспектах логистики, чтобы товары пришли к вам без задержек.</li>
-    <li><strong>Контроль качества</strong>: Мы гарантируем, что все товары будут проверены на соответствие международным стандартам.</li>
-  </ul>
-  <a href="#contact" class="button">Связаться с нами</a>
-</div>
+<script>
+// Вставь сюда свой API-ключ
+const apiKey = 'AIzaSyCrTWJ7Kbyv8DlGeRWagKbrLxISAy03HpQ';
 
-<div class="section" id="contact">
-  <h2>Связаться с нами</h2>
-  <p>Готовы начать закупки? Напишите нам, и мы подберём оптимальные условия для вашего бизнеса!</p>
-  <a href="mailto:info@origa.com" class="button">Написать нам</a>
-</div>
+// Вставь сюда ID своей таблицы
+const sheetId = '1iS7BBPqa2Kk_Px3acsjOCoRhNUdxDt4MCpbL68mcy0Q';
 
-<footer>
-  <p>&copy; 2025 ORIGA. Все права защищены.</p>
-</footer>
+// Вставь сюда имя листа и диапазон (например: Лист1!A1:Z1000)
+const range = 'Лист1!A1:Z1000';
+
+const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+
+fetch(url)
+  .then(response => response.json())
+  .then(data => {
+    const table = document.getElementById('data-table');
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+
+    if (data.values && data.values.length > 0) {
+      // Заголовок таблицы
+      const headerRow = document.createElement('tr');
+      data.values[0].forEach(headerText => {
+        const th = document.createElement('th');
+        th.textContent = headerText;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+
+      // Строки данных
+      data.values.slice(1).forEach(row => {
+        const tr = document.createElement('tr');
+        row.forEach(cellText => {
+          const td = document.createElement('td');
+          td.textContent = cellText;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    } else {
+      tbody.innerHTML = '<tr><td colspan="100%">Нет данных</td></tr>';
+    }
+  })
+  .catch(error => {
+    console.error('Ошибка при загрузке данных:', error);
+  });
+</script>
 
 </body>
 </html>
