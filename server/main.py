@@ -6,7 +6,7 @@ from sse_starlette.sse import EventSourceResponse
 from typing import List, Optional
 
 from .models import SupplierItem, SearchParams, RFQRequest, RFQResponse, DDPInput, DDPResult
-from .search_1688 import search_1688_realtime, search_1688_offline_stream
+from .search_1688 import search_1688_list, search_1688_stream, search_1688_offline_stream
 from .exporters import export_suppliers_to_excel, export_to_csv_json
 from .rfq import generate_rfq
 from .ddp import calculate_ddp_async
@@ -80,7 +80,7 @@ async def search_endpoint(
         render=render,
         offline_demo=offline_demo
     )
-    items = await search_1688_realtime(params)
+    items = await search_1688_list(params)
     return items
 
 
@@ -125,7 +125,7 @@ async def search_stream(
 
     async def event_generator():
         yield {"event": "status", "data": "start"}
-        agen = search_1688_offline_stream(params) if offline_demo else search_1688_realtime(params, stream=True)
+        agen = search_1688_offline_stream(params) if offline_demo else search_1688_stream(params)
         async for evt in agen:
             yield {"event": evt["type"], "data": evt["data"]}
         yield {"event": "status", "data": "done"}

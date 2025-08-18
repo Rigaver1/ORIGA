@@ -75,11 +75,10 @@ def parse_search_html(html: str) -> List[Dict[str, Any]]:
     return cards
 
 
-async def search_1688_realtime(params: SearchParams, stream: bool = False):
+async def search_1688_list(params: SearchParams) -> List[SupplierItem]:
     if params.offline_demo or not params.online:
         items = list(await _offline_items())
-        items = _apply_filters(items, params)
-        return items if not stream else _stream_from_list(items)
+        return _apply_filters(items, params)
 
     base_url = "https://s.1688.com/selloffer/offer_search.htm"
     query = params.q
@@ -107,15 +106,43 @@ async def search_1688_realtime(params: SearchParams, stream: bool = False):
         for coro in asyncio.as_completed(tasks):
             batch = await coro
             results.extend(batch)
-            if stream:
-                for it in batch:
-                    yield {"type": "item", "data": it.model_dump_json()}
 
     results = _apply_filters(results, params)
     results.sort(key=lambda x: (-(x.score or 0.0), (x.price_min_cny or 1e12)))
-    if stream:
-        return
     return results
+
+
+async def search_1688_stream(params: SearchParams) -> AsyncGenerator[Dict[str, str], None]:
+    if params.offline_demo or not params.online:
+        async for evt in search_1688_offline_stream(params):
+            yield evt
+        return
+
+    base_url = "https://s.1688.com/selloffer/offer_search.htm"
+    query = params.q
+    pages = max(1, params.pages)
+
+    timeout = httpx.Timeout(params.timeout)
+    limits = httpx.Limits(max_connections=params.concurrency)
+    proxies = params.proxy
+    async with httpx.AsyncClient(timeout=timeout, limits=limits, proxies=proxies) as client:
+        sem = asyncio.Semaphore(params.concurrency)
+
+        async def fetch_and_parse(page: int):
+            async with sem:
+                url = f"{base_url}?keywords={query}&page={page}"
+                try:
+                    html = await fetch_page(client, url, params.cookie)
+                except Exception:
+                    return []
+                raw_cards = parse_search_html(html)
+                return [normalize_item(r) for r in raw_cards]
+
+        tasks = [fetch_and_parse(p + 1) for p in range(pages)]
+        for coro in asyncio.as_completed(tasks):
+            batch = await coro
+            for it in _apply_filters(batch, params):
+                yield {"type": "item", "data": it.model_dump_json()}
 
 
 async def search_1688_offline_stream(params: SearchParams) -> AsyncGenerator[Dict[str, str], None]:
@@ -176,10 +203,3 @@ def _apply_filters(items: List[SupplierItem], params: SearchParams) -> List[Supp
         out.append(it)
     out.sort(key=lambda x: (-(x.score or 0.0), (x.price_min_cny or 1e12)))
     return out
-
-
-def _stream_from_list(items: List[SupplierItem]):
-    async def gen():
-        for it in items:
-            yield {"type": "item", "data": it.model_dump_json()}
-    return gen()
