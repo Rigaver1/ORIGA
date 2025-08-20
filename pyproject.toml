@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aliyun1688parser"
+version = "0.1.0"
+description = "CLI parser for 1688 product pages to extract cargo-relevant fields"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+  {name = "Cargo Parser"}
+]
+dependencies = [
+  "requests>=2.31.0",
+  "beautifulsoup4>=4.12.2",
+  "lxml>=4.9.3,<6",
+  "pydantic>=2.8.2",
+  "charset-normalizer>=3.3.2"
+]
+
+[project.optional-dependencies]
+browser = [
+  "playwright>=1.47.0"
+]
+
+[project.scripts]
+aliyun1688parser = "aliyun1688parser.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["aliyun1688parser*"]
+exclude = ["tests*"]

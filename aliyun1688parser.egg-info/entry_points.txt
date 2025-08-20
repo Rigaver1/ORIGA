@@ -1,0 +1,2 @@
+[console_scripts]
+aliyun1688parser = aliyun1688parser.cli:main
