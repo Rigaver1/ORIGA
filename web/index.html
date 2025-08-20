@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CargoOS 1688 — Ядро (RU)</title>
+  <style>
+    body { font-family: Inter, system-ui, Arial, sans-serif; margin: 0; background: #0b0f14; color: #e6edf3; }
+    header { position: sticky; top: 0; background:#0f1720; border-bottom: 1px solid #1f2a37; padding: 12px 16px; z-index: 10; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    input, select { background: #0b1220; color: #e6edf3; border: 1px solid #263445; padding: 10px 12px; border-radius: 8px; }
+    button { background: #2563eb; color: white; border: 0; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
+    button.secondary { background: #1f2937; }
+    .cards { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 16px; }
+    .card { border: 1px solid #1f2a37; border-radius: 10px; padding: 12px; background: #0f1522; display: grid; grid-template-columns: 88px 1fr; gap: 12px; }
+    .img { width: 88px; height: 88px; border-radius: 6px; background: #111827; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:12px; }
+    .title { font-weight: 600; margin-bottom: 6px; }
+    .meta { color: #9fb2c9; font-size: 13px; margin: 2px 0; }
+    .tags span { background:#0b1220; border:1px solid #203042; color:#9fb2c9; padding:2px 6px; border-radius:6px; margin-right:6px; font-size:12px; }
+    .actions { display:flex; gap:8px; margin-top:8px; flex-wrap: wrap; }
+    .toolbar { display:flex; gap:8px; margin-top:8px; }
+    .status { font-size:12px; color:#9fb2c9; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="row">
+        <input id="q" placeholder="CN-запрос (например: 塑料 瓶 OEM)" style="flex:1">
+        <select id="mode">
+          <option value="fast">fast</option>
+          <option value="precise">precise</option>
+        </select>
+        <label><input type="checkbox" id="only_factories" checked> только заводы</label>
+        <label><input type="checkbox" id="audited_only" checked> только аудит</label>
+        <input id="pages" type="number" min="1" max="10" value="1" style="width:80px" title="Страниц">
+        <button id="searchBtn">Поиск (Enter)</button>
+      </div>
+      <div class="toolbar">
+        <button class="secondary" id="exportSel">Экспорт выбранных</button>
+        <button class="secondary" id="exportAll">Экспорт всех</button>
+        <span class="status" id="status">Готово</span>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <div class="cards" id="cards"></div>
+  </main>
+
+<script>
+const cardsEl = document.getElementById('cards');
+const statusEl = document.getElementById('status');
+let items = [];
+
+function renderItem(it, idx) {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.innerHTML = `
+    <div class="img">${(it.image_urls && it.image_urls[0]) ? `<img src="${it.image_urls[0]}" style="max-width:88px;max-height:88px">` : 'Фото'}</div>
+    <div>
+      <div class="title">${it.title}</div>
+      <div class="meta">Цена: ${it.price_min_cny ?? '—'}${it.price_max_cny? '–'+it.price_max_cny: ''} CNY • MOQ: ${it.moq ?? '—'}</div>
+      <div class="meta">Компания: ${it.shop_name ?? '—'} • Локация: ${it.location ?? '—'}</div>
+      <div class="meta">Завод: ${it.is_factory ? 'Да' : 'Нет'} (${(it.is_factory_confidence*100).toFixed(0)}%) • Аудит: ${it.audited ? 'Да':'Нет'} • Score: ${it.score.toFixed(1)}</div>
+      <div class="tags">${(it.tags||[]).map(t=>`<span>${t}</span>`).join('')}</div>
+      <div class="actions">
+        <a href="${it.url}" target="_blank"><button>Открыть 1688</button></a>
+        <button onclick="rfq(${idx})">RFQ</button>
+        <button onclick="ddp(${idx})">DDP ₽</button>
+        <label><input type="checkbox" data-idx="${idx}" class="sel"> Выбрать</label>
+      </div>
+    </div>`;
+  return div;
+}
+
+async function search() {
+  items = []; cardsEl.innerHTML = ''; statusEl.textContent = 'Поиск…';
+  const q = document.getElementById('q').value.trim();
+  const params = new URLSearchParams({
+    q,
+    mode: document.getElementById('mode').value,
+    pages: document.getElementById('pages').value,
+    only_factories: document.getElementById('only_factories').checked,
+    audited_only: document.getElementById('audited_only').checked,
+  });
+  const es = new EventSource(`/search_1688/stream?${params.toString()}`);
+  es.onmessage = (e)=>{};
+  es.addEventListener('item', (e)=>{
+    const it = JSON.parse(e.data);
+    items.push(it);
+    cardsEl.appendChild(renderItem(it, items.length-1));
+    statusEl.textContent = `Получено: ${items.length}`;
+  });
+  es.addEventListener('status', (e)=>{
+    if (e.data === 'done') {
+      statusEl.textContent = `Готово. Найдено: ${items.length}`;
+      es.close();
+    }
+  });
+}
+
+async function exportItems(all) {
+  const selectedIdx = Array.from(document.querySelectorAll('input.sel:checked')).map(x=>parseInt(x.dataset.idx));
+  const payload = all ? items : selectedIdx.map(i=>items[i]);
+  const r = await fetch('/export/xlsx', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+  const data = await r.json();
+  statusEl.innerHTML = `Экспортировано: <a href="/${data.path}" target="_blank">${data.path}</a>`;
+}
+
+document.getElementById('exportSel').onclick = ()=>exportItems(false);
+
+document.getElementById('exportAll').onclick = ()=>exportItems(true);
+
+document.getElementById('searchBtn').onclick = search;
+
+document.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') search(); });
+
+async function rfq(idx) {
+  const it = items[idx];
+  const req = { lang: 'ru', title: it.title, url: it.url, price_range: `${it.price_min_cny ?? '—'}-${it.price_max_cny ?? '—'}`, moq: it.moq, incoterms: 'FOB/CIF', required_certs: [], qty: it.moq || 100 };
+  const r = await fetch('/rfq', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(req)});
+  const data = await r.json();
+  alert(`RFQ создан: ${data.path}\n\n${data.preview}`);
+}
+
+async function ddp(idx) {
+  const it = items[idx];
+  const body = { exw_or_fob_cny: it.price_min_cny || 1, qty: it.moq || 100, duty_rate_pct: 5, vat_rate_pct: 20, fx_source: 'cbr' };
+  const r = await fetch('/calc/ddp', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  const data = await r.json();
+  alert(`DDP: ${data.total_rub} ₽ (≈ ${data.per_unit_rub} ₽/шт)`);
+}
+</script>
+</body>
+</html>
