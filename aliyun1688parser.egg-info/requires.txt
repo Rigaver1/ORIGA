@@ -1,0 +1,8 @@
+requests>=2.31.0
+beautifulsoup4>=4.12.2
+lxml<6,>=4.9.3
+pydantic>=2.8.2
+charset-normalizer>=3.3.2
+
+[browser]
+playwright>=1.47.0

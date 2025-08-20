@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+./aliyun1688parser/__init__.py
+./aliyun1688parser/browser.py
+./aliyun1688parser/cli.py
+./aliyun1688parser/http_client.py
+./aliyun1688parser/models.py
+./aliyun1688parser/parser.py
+aliyun1688parser.egg-info/PKG-INFO
+aliyun1688parser.egg-info/SOURCES.txt
+aliyun1688parser.egg-info/dependency_links.txt
+aliyun1688parser.egg-info/entry_points.txt
+aliyun1688parser.egg-info/requires.txt
+aliyun1688parser.egg-info/top_level.txt
