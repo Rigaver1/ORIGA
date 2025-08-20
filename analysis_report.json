@@ -1,0 +1,21 @@
+{
+  "summary": {
+    "total_products": 3,
+    "average_profit_margin": "26.67%",
+    "generated_at": "2025-08-20T01:57:02.222243"
+  },
+  "categories": {
+    "Electronics": 1,
+    "Textiles": 1,
+    "Kitchen Tools": 1
+  },
+  "quality_distribution": {
+    "A - Premium Quality": 2,
+    "B+ - High Quality": 1
+  },
+  "recommendations": [
+    "Focus on 2 high-margin products",
+    "Monitor 0 high-risk products",
+    "Prioritize 2 excellent suppliers"
+  ]
+}

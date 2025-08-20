@@ -1,0 +1,85 @@
+# 1688 Parser Configuration File
+
+# Scraping settings
+scraping:
+  delay_between_requests: 1.5  # seconds
+  timeout: 30  # seconds
+  max_retries: 3
+  concurrent_requests: 5
+  
+  # User agent rotation (optional)
+  user_agents:
+    - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+
+# Export settings
+export:
+  default_format: "csv"  # csv, json, excel
+  include_images: true
+  max_description_length: 500
+  date_format: "%Y-%m-%d %H:%M:%S"
+
+# Cargo manager integration settings
+cargo_manager:
+  default_currency: "CNY"
+  profit_margin_threshold: 0.15  # 15%
+  risk_assessment: true
+  include_hs_codes: true
+  
+  # Currency conversion rates (update regularly)
+  currency_rates:
+    CNY: 1.0
+    USD: 0.14
+    EUR: 0.13
+    GBP: 0.11
+    
+  # Category mappings for HS codes
+  hs_code_mapping:
+    electronics: "8517.12.00"
+    textiles: "6109.10.00"
+    machinery: "8479.89.98"
+    furniture: "9403.60.90"
+    toys: "9503.00.00"
+    tools: "8205.59.00"
+    automotive: "8708.99.00"
+    home_garden: "6913.10.00"
+    beauty: "3304.99.00"
+    sports: "9506.99.00"
+
+# Data validation settings
+validation:
+  required_fields:
+    - "id"
+    - "title"
+    - "price"
+    - "supplier_name"
+  
+  price_validation:
+    min_price: 0.01
+    max_price: 100000
+    
+  quality_checks:
+    min_title_length: 5
+    min_description_length: 10
+    max_image_count: 20
+
+# Logging configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "1688_parser.log"
+  max_file_size: "10MB"
+  backup_count: 5
+
+# Advanced features (optional)
+advanced:
+  use_proxy: false
+  proxy_rotation: false
+  captcha_solving: false
+  javascript_rendering: false  # Set to true if products require JS
+  
+  # Proxy settings (if enabled)
+  proxies:
+    - "http://proxy1:port"
+    - "http://proxy2:port"

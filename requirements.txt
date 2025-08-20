@@ -1,0 +1,31 @@
+# 1688 Product Parser Requirements
+# Core dependencies for web scraping and data processing
+
+# Web scraping and HTTP requests
+requests>=2.28.0
+beautifulsoup4>=4.11.0
+lxml>=4.9.0
+selenium>=4.8.0  # For JavaScript-heavy pages if needed
+
+# Data processing and analysis
+pandas>=1.5.0
+numpy>=1.24.0
+
+# Text processing and regex
+regex>=2022.10.31
+
+# Data export formats
+openpyxl>=3.1.0  # Excel support
+xlsxwriter>=3.0.0
+
+# Logging and configuration
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Optional: Advanced features
+# Uncomment if needed
+# scrapy>=2.8.0  # Alternative scraping framework
+# playwright>=1.30.0  # Modern browser automation
+# fake-useragent>=1.4.0  # Random user agents
+# cloudscraper>=1.2.60  # Cloudflare bypass
+# anticaptcha>=2.0.0  # CAPTCHA solving service
